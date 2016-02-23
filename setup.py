@@ -6,13 +6,14 @@ install_requirements = ['fallocate>=1.4.0',
                         'cffi>=1.0.0']
 
 setup_requirements = ['cffi>=1.0.0',
-                      'nose>=1.3.1']
+                      'nose>=1.3.1',
+                      'mock']
 
 setup(
     name='pynvm',
     version=nvm.__version__,
     url='https://github.com/perone/pynvm',
-    license='Apache 2.0 License',
+    license='BSD 3-clause',
     author=nvm.__author__,
     author_email='christian.perone@gmail.com',
     description='Next-generation non-volatile memory for Python.',

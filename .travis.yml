@@ -1,14 +1,20 @@
+# Travis CI Settings
+
 language: python
 
 python:
-  - 2.6
-  - 2.7
+  - "2.7"
+  - "pypy"
 
 script: nosetests
 
 before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y uuid-dev
   - wget https://github.com/pmem/nvml/archive/0.4.tar.gz
   - tar -xzvf 0.4.tar.gz
   - cd nvml-0.4 && make && sudo make install
+  - sudo ldconfig
 
-install: python setup.py develop
+install: 
+  - cd $TRAVIS_BUILD_DIR && python setup.py develop
