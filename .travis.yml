@@ -1,0 +1,14 @@
+language: python
+
+python:
+  - 2.6
+  - 2.7
+
+script: nosetests
+
+before_install:
+  - wget https://github.com/pmem/nvml/archive/0.4.tar.gz
+  - tar -xzvf 0.4.tar.gz
+  - cd nvml-0.4 && make && sudo make install
+
+install: python setup.py develop

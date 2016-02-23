@@ -1,0 +1,13 @@
+*~
+*.swp
+*.bak
+*.pyc
+build/
+*.egg-info
+*.class
+.tox
+dist/
+*.o
+*.so
+*.c
+*.pmem
