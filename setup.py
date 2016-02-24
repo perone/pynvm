@@ -21,6 +21,7 @@ setup(
     install_requires=install_requirements,
     setup_requires=setup_requirements,
     cffi_modules=["nvm/libex.py:ffi"],
+    test_suite="nose.collector",
     packages=['nvm'],
     keywords='nvm, scm, non-volatile memory, nvml, nvm library, pmem, dax',
     platforms='Any',
