@@ -11,3 +11,6 @@ dist/
 *.so
 *.c
 *.pmem
+.eggs
+.coverage
+
