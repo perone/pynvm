@@ -7,6 +7,7 @@ install_requirements = ['fallocate>=1.4.0',
 
 setup_requirements = ['cffi>=1.0.0',
                       'nose>=1.3.1',
+                      'coveralls>=1.1',
                       'mock']
 
 setup(

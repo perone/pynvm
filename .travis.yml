@@ -6,7 +6,11 @@ python:
   - "2.7"
   - "pypy"
 
-script: nosetests
+script:
+  - nosetests --with-coverage --cover-package=nvm
+
+after_success:
+  - coveralls
 
 before_install:
   - sudo apt-get -qq update
@@ -17,4 +21,5 @@ before_install:
   - sudo ldconfig
 
 install: 
+  - pip install coveralls
   - cd $TRAVIS_BUILD_DIR && python setup.py develop
