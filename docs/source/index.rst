@@ -18,6 +18,7 @@ Contents:
 .. toctree::
    :maxdepth: 4
 
+   changelog
    intro
    modules
    license
