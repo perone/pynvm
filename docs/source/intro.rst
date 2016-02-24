@@ -32,7 +32,7 @@ How it works
    *Image from: http://pmem.io*
    
 
-In the imabe above, we can see different types of access to a NVDIMM device.
+In the image above, we can see different types of access to a NVDIMM device.
 There are the standard and well known types of access like the one using the
 standard file API (fopen/open, etc.), and the type of access that we're really
 interested which is the one on the right using Load/Store and bypassing the
