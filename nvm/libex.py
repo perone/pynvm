@@ -11,7 +11,10 @@ ffi.set_source("_pmem",
 
 ffi.cdef("""
     /* libpmem */
-    void *pmem_map(int fd);
+    typedef int mode_t;
+
+    void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
+        size_t *mapped_lenp, int *is_pmemp);
     int pmem_unmap(void *addr, size_t len);
     int pmem_has_hw_drain(void);
     int pmem_is_pmem(void *addr, size_t len);
@@ -25,7 +28,6 @@ ffi.cdef("""
 
     /* libpmemlog */
     typedef struct pmemlog PMEMlogpool;
-    typedef int mode_t;
     typedef int off_t;
 
     PMEMlogpool *pmemlog_open(const char *path);

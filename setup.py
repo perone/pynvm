@@ -1,8 +1,7 @@
 from setuptools import setup
 import nvm
 
-install_requirements = ['fallocate>=1.4.0',
-                        'nose>=1.3.7',
+install_requirements = ['nose>=1.3.7',
                         'cffi>=1.0.0']
 
 setup_requirements = ['cffi>=1.0.0',

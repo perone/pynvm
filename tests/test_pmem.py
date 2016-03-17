@@ -3,17 +3,15 @@ import os
 import uuid
 
 from nvm import pmem
-from fallocate import posix_fallocate
 
 
 class MapMixin(object):
 
     def create_mapping(self, size=4096):
         filename = "{}.pmem".format(uuid.uuid4())
-        fhandle = open(filename, "w+")
-        posix_fallocate(fhandle, 0, size)
-        mapping = pmem.map(fhandle, size)
-        fhandle.close()
+        mapping = pmem.map_file(filename, size,
+                                pmem.FILE_CREATE | pmem.FILE_EXCL,
+                                0666)
         return filename, mapping
 
     def clear_mapping(self, filename, mapping):
@@ -36,14 +34,6 @@ class TestHasHardwareDrain(unittest.TestCase):
 
 
 class TestMap(unittest.TestCase, MapMixin):
-    def test_map_zero(self):
-        filename = "{}.pmem".format(uuid.uuid4())
-        fhandle = open(filename, "w+")
-        with self.assertRaises(RuntimeError):
-            mapping = pmem.map(fhandle, 4096)
-        fhandle.close()
-        os.unlink(filename)
-
     def test_map_ok(self):
         filename, mapping = self.create_mapping()
         self.assertIsInstance(mapping, pmem.MemoryBuffer)
@@ -111,13 +101,11 @@ class TestHwDrain(unittest.TestCase, MapMixin):
 class TestMapContext(unittest.TestCase):
     def test_map_context(self):
         filename = "{}.pmem".format(uuid.uuid4())
-        fhandle = open(filename, "w+")
-        posix_fallocate(fhandle, 0, 4096)
-
-        with pmem.map(fhandle, 4096) as reg:
+        with pmem.map_file(filename, 4096,
+                           pmem.FILE_CREATE | pmem.FILE_EXCL,
+                           0666) as reg:
             reg.write("test")
 
-        fhandle.close()
         os.unlink(filename)
 
 if __name__ == '__main__':

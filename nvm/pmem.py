@@ -10,12 +10,27 @@
 import os
 from _pmem import lib, ffi
 
+#: Create the named file if it does not exist.
+FILE_CREATE = 1
+
+#: Ensure that this call creates the file.
+FILE_EXCL = 2
+
+#: When creating a file, create a sparse (holey) file instead of calling
+#: posix_fallocate(2)
+FILE_SPARSE = 4
+
+#: Create a mapping for an unnamed temporary file.
+FILE_TMPFILE = 8
+
 
 class MemoryBuffer(object):
     """A file-like I/O (similar to cStringIO) for persistent mmap'd regions."""
 
-    def __init__(self, buffer_):
+    def __init__(self, buffer_, is_pmem, mapped_len):
         self.buffer = buffer_
+        self.is_pmem = is_pmem
+        self.mapped_len = mapped_len
         self.size = len(buffer_)
         self.pos = 0
 
@@ -152,23 +167,45 @@ def has_hw_drain():
     return bool(ret)
 
 
-def map(file_, size):
-    """Map the entire file for read/write access
+def map_file(file_name, file_size, flags, mode):
+    """Given a path, this function creates a new read/write
+    mapping for the named file. It will map the file using mmap,
+    but it also takes extra steps to make large page mappings more
+    likely.
 
-    :param file: The file descriptor of a file object.
+    If creation flags are not supplied, then this function creates a mapping
+    for an existing file. In such case, `file_size` should be zero. The entire
+    file is mapped to memory; its length is used as the length of the
+    mapping.
+
+    .. seealso:: `NVML libpmem documentation <http://pmem.io/nvml/libpmem/libpm
+                 em.3.html>`_.
+
+    :param file_name: The file name to use.
+    :param file_size: the size to allocate
+    :param flags: The flags argument can be 0 or bitwise OR of one or more of
+                  the following file creation flags:
+                  :const:`~nvm.pmem.FILE_CREATE`,
+                  :const:`~nvm.pmem.FILE_EXCL`,
+                  :const:`~nvm.pmem.FILE_TMPFILE`,
+                  :const:`~nvm.pmem.FILE_SPARSE`.
     :return: The mapping, an exception will rise in case
              of error.
     """
-    if hasattr(file_, 'fileno'):
-        ret = lib.pmem_map(file_.fileno())
-    else:
-        ret = lib.pmem_map(file_)
+    ret_mappend_len = ffi.new("size_t *")
+    ret_is_pmem = ffi.new("int *")
+
+    ret = lib.pmem_map_file(file_name, file_size, flags, mode,
+                            ret_mappend_len, ret_is_pmem)
 
     if ret == ffi.NULL:
         raise RuntimeError(os.strerror(ffi.errno))
 
-    cast = ffi.buffer(ret, size)
-    return MemoryBuffer(cast)
+    ret_mapped_len = ret_mappend_len[0]
+    ret_is_pmem = bool(ret_is_pmem[0])
+
+    cast = ffi.buffer(ret, file_size)
+    return MemoryBuffer(cast, ret_is_pmem, ret_mapped_len)
 
 
 def unmap(memory_buffer):
