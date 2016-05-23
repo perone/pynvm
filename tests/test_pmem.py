@@ -1,3 +1,4 @@
+import sys
 import unittest
 import os
 import uuid
@@ -11,7 +12,7 @@ class MapMixin(object):
         filename = "{}.pmem".format(uuid.uuid4())
         mapping = pmem.map_file(filename, size,
                                 pmem.FILE_CREATE | pmem.FILE_EXCL,
-                                0666)
+                                0o666)
         return filename, mapping
 
     def clear_mapping(self, filename, mapping):
@@ -48,11 +49,11 @@ class TestMemoryBuffer(unittest.TestCase, MapMixin):
 
     def test_write_seek_read(self):
         filename, mapping = self.create_mapping()
-        test_str = "testing"
-        test_len = len(test_str)
-        mapping.write(test_str)
+        test_data = b"testing"
+        test_len = len(test_data)
+        mapping.write(test_data)
         mapping.seek(0)
-        self.assertEqual(mapping.read(test_len), test_str)
+        self.assertEqual(mapping.read(test_len), test_data)
         self.clear_mapping(filename, mapping)
 
     def test_write_out_range(self):
@@ -103,10 +104,30 @@ class TestMapContext(unittest.TestCase):
         filename = "{}.pmem".format(uuid.uuid4())
         with pmem.map_file(filename, 4096,
                            pmem.FILE_CREATE | pmem.FILE_EXCL,
-                           0666) as reg:
-            reg.write("test")
+                           0o0666) as reg:
+            reg.write(b"test")
 
         os.unlink(filename)
+
+
+class TestPy2Py3FilenameSupport(unittest.TestCase):
+
+    def test_non_ascii_bytes_filename(self):
+        filename = b'\xf4' + "{}.pmem".format(uuid.uuid4()).encode()
+        pmem.map_file(filename, 4096,
+                      pmem.FILE_CREATE | pmem.FILE_EXCL,
+                      0o0666)
+        os.unlink(filename)
+
+    if sys.version_info[0] > 2:
+        def test_non_ascii_py3_string_filename(self):
+            filename = b'\xf4' + "{}.pmem".format(uuid.uuid4()).encode()
+            filename = filename.decode(errors='surrogateescape')
+            pmem.map_file(filename, 4096,
+                          pmem.FILE_CREATE | pmem.FILE_EXCL,
+                          0o0666)
+            os.unlink(filename)
+
 
 if __name__ == '__main__':
     unittest.main()
